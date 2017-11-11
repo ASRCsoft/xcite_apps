@@ -1,0 +1,37 @@
+{% load static %}
+<html>
+    <head>
+	<title>Profile Data Browser - xCITE Data Lab</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- the site-wide css file -->
+	<link rel="stylesheet" href="{% static 'css/main.css' %}">
+	<!-- a bit of styling -->
+	<style>
+	 /* ... will I put stuff in here? Maybe. */
+	 #lidar_graph {
+	     min-height: 350px;
+	 }
+	</style>
+    </head>
+    <body>
+	<div id="height">
+	    {% include 'header.html' %}
+	    <h2>Datasets</h2>
+	    <p>(All data is aggregated into 5 minute intervals.)</p>
+	    <dl>
+		<dt>CNR</dt>
+		<dd>Carrier to Noise Ratio. An average of CNR data where Status is 1. (A Status value of 1 indicates with high probability that the lidar recorded the laser signal rather than background noise.) To further reduce noise, I also counted every range/time combination with 3 or fewer Status==1 measurements as missing data.</dd>
+		<dt>DRWS</dt>
+		<dd>Dispersion Radial Wind Speed. Calculated with the same method as CNR.</dd>
+		<dt>Horizontal Wind Speed, Vertical Wind Speed, x Wind Speed, y Wind Speed</dt>
+		<dd>Average of wind estimates made by combining the radial wind speed estimates from 5 consecutive scans in DBS mode. All 5 consecutive measurements must have a Status of 1 for a wind estimate to be recorded.</dd>
+		<dt>Wind Direction, wind barb overlay</dt>
+		<dd>Average horizontal wind speeds (same as the wind speeds above). For legibility I'm only showing the values at 30-minute intervals and I'm averaging heights in 250m bins.</dd>
+		<dt>Temperature, Vapor Density, Liquid, Relative Humidity</dt>
+		<dd>Averages of the corresponding microwave radiometer datasets from the 'Zenith' processor where quality is 1.</dd>
+	    </dl>
+	</div>
+	{% include 'footer.html' %}
+    </body>
+</html>

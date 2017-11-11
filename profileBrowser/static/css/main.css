@@ -1,0 +1,88 @@
+/* site-wide CSS */
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+#height {
+    min-height: calc(100vh - 120px);
+}
+
+header {
+    background-color: #ccc;
+    margin-bottom: 30px;
+    padding-left: 7px;
+}
+
+h2 {
+    display: inline-block;
+    margin-top: 7px;
+    margin-bottom: 10px;
+}
+h3 {
+    display: inline-block;
+    margin: 0;
+    width: 45%;
+    text-align: right;
+    font-style: italic;
+}
+#graph1 {
+    float: left;
+    clear: left;
+    margin-right: 40px;
+}
+#form1 {
+    margin-bottom: 0px;
+}
+#map {
+    height: 200px;
+    width: 250px;
+    border: 1px solid gray;
+    float: right;
+    margin-right: 4px;
+}
+fieldset {
+    padding: 10px 15px 15px;
+    width: fit-content;
+    margin-bottom: 30px;
+    /* for firefox */
+    width: -moz-fit-content;
+}
+.time, .date {
+    max-width: 200px;
+}
+/* this keeps the leaflet map from covering the jquery
+	    calendar dropdown */
+.leaflet-pane {
+    z-index: 1;
+}
+.leaflet-control {
+    z-index: 1;
+}
+.leaflet-top, .leaflet-bottom {
+    z-index: 1;
+}
+
+/* data dictionary */
+dt {
+    font-weight: bold;
+    margin-top: 15px;
+}
+dt::after { 
+    content: ':';
+}
+
+/* footer stuff */
+footer {
+    margin-top: 50px;
+    padding: 10px 0px 10px 40px;
+    height: 50px;
+    /* dark theme */
+    color: white;
+    background-color: #444;
+}
+
+footer a:visited {
+    color: mediumpurple;
+}

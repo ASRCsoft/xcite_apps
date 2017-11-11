@@ -1,0 +1,379 @@
+{% load static %}
+<html>
+    <head>
+	<title>Profile Data Browser - xCITE Data Lab</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- leaflet stuff -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" integrity="sha512-wcw6ts8Anuw10Mzh9Ytw4pylW8+NAD4ch3lqm9lzAsTxg0GFeJgoAtxuCLREZSC5lUXdVyo/7yfsqFjQ4S+aKw==" crossorigin="">
+	<script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js" integrity="sha512-mNqn2Wg7tSToJhvHcqfzLMU6J4mkOImSPTxVZAdo+lcPlk+GhZmYgACEe0x35K7YzW1zJ7XyJV/TT1MrdXvMcA==" crossorigin=""></script>
+	<!-- jquery stuff -->
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<!-- jquery ui stuff (for calendar dropdown) -->
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<!-- timepicker stuff -->
+	<!-- <script src="js/jquery.timepicker.min.js"></script>
+	     <link rel="stylesheet" type="text/css" href="css/jquery.timepicker.min.css"> -->
+	<script src="{% static 'profiles/js/jquery.timepicker.min.js' %}"></script>
+	<link rel="stylesheet" type="text/css" href="{% static 'profiles/css/jquery.timepicker.min.css' %}">
+	<!-- spinning stuff -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+	<!-- the site-wide css file -->
+	<link rel="stylesheet" href="{% static 'css/main.css' %}">
+	<!-- a bit of styling -->
+	<style>
+	 /* ... will I put stuff in here? Maybe. */
+	 #lidar_graph {
+	     min-height: 350px;
+	 }
+	</style>
+    </head>
+    <body>
+	<div id="height">
+	    {% include 'header.html' %}
+	    <fieldset>
+		<legend>Data Options:</legend>
+		<form id="form1" action="javascript:update_graphs();">
+		    <label for="datepicker">Time range (UTC):</label><br>
+		    <!-- <input type="text" id="datepicker"> -->
+		    <input type="text" id="datepicker" class="date start">
+		    <input type="text" class="time start"> to 
+		    <input type="text" id="datepicker2" class="date end">
+		    <input type="text" class="time end">
+		    <br><br>
+		    <div id="graph1">
+			<label for="varpicker">Data:</label>
+			<select id="varpicker">
+			    <option value="cnr">CNR</option>
+			    <option value="drws">DRWS</option>
+			    <option value="barbs">Wind Direction</option>
+			    <option value="hwind">Horizontal Wind Speed</option>
+			    <option value="zwind">Vertical Wind Speed</option>
+			    <option value="xwind">x Wind Speed</option>
+			    <option value="ywind">y Wind Speed</option>
+			    <option value="temp">Temperature</option>
+			    <option value="vapor">Vapor Density</option>
+			    <option value="liquid">Liquid</option>
+			    <option value="rh">Relative Humidity</option>
+			</select>
+			(<a href="{% url 'datasets' %}" title="Data Definitions" target="_blank">?</a>)
+			<br><br>
+			<label for="lidarpicker">Sources:</label><br>
+			<select multiple name="lidar_scans[]" id="lidarpicker"></select>
+			<br><br>
+			<input type="checkbox" name="barbs" id="barbs">
+			<label for="barbs">Overlay wind barbs</label>
+			<br><br>
+			<input type="submit" value="View Data">
+		    </div>
+		</form>
+		<div id="map"></div>
+	    </fieldset>
+	    <img id="lidar_graph" src="" alt="Lidar CNR data">
+	    <script type="text/javascript">
+	     /* a few useful variables */
+	     var base_url = 'http://appsvr.asrc.cestm.albany.edu:9090/';
+	     var datepicker = $('#datepicker');
+	     var datepicker2 = $('#datepicker2');
+	     var varpicker = $('#varpicker');
+	     var lidarpicker = $('#lidarpicker');
+	     var barbbox = $('#barbs');
+	     var graph = $('#lidar_graph');
+	     var selected_sites = [];
+	     var instrument = 'lidar';
+	     var mwr_data = ['temp', 'vapor', 'liquid', 'rh'];
+	     /* the data variables that depend on wind information */
+	     var requires_wind = ['barbs', 'hwind', 'zwind', 'xwind', 'ywind'];
+	     /* circleMarker styling */
+	     var cm_options = {radius: 6, color: 'blue', weight: 0,
+			       opacity: .8, fillOpacity: .8};
+	     var cm_selected_options = {radius: 6, color: 'orange',
+					weight: 0,
+					opacity: .8, fillOpacity: .8};
+	     var spinner = new Spinner();
+	     graph.on('load', function() {
+		 try {
+		     spinner.stop();
+		 } catch(err) {};
+		 graph.css('opacity', 1);
+	     });
+	     /* this variable stores information about the selected
+		lidar/scan combinations */
+	     var lidars;
+	     var clickMarker = function(e) {
+		 var event = e.originalEvent;
+		 var marker = e.target;
+		 var shift = event.shiftKey || event.ctrlKey;
+		 if (shift && marker['selected']) {
+		     deselectMarker(marker);
+		 } else {
+		     selectMarker(marker, shift);
+		 };
+	     }
+	     var selectMarker = function(marker, shift) {
+		 marker['selected'] = true;
+		 marker.setStyle(cm_selected_options);
+		 /* reset the select list */
+		 $.each(lidars, function(i, lidar) {
+		     if (lidar['site_name'] == marker['name']) {
+			 $(lidarpicker[0].options[i]).prop("selected", true);
+		     } else {
+			 if (!shift) {
+			     $(lidarpicker[0].options[i]).prop("selected", false);	 
+			 };
+		     };
+		 });
+		 /* reset the map markers, unless the shift key was pressed */
+		 if (!shift) {
+		     $.each(marker_layer.getLayers(), function(i, m2) {
+			 if (m2['name'] != marker['name']) {
+			     m2.setStyle(cm_options);
+			     m2['selected'] = false;
+			 };
+		     });
+		 };
+		 /* update_graphs();*/
+	     };
+	     var deselectMarker = function(marker) {
+		 marker['selected'] = false;
+		 marker.setStyle(cm_options);
+		 $.each(lidars, function(i, lidar) {
+		     if (lidar['site_name'] == marker['name']) {
+			 $(lidarpicker[0].options[i]).prop("selected", false);
+		     };
+		 });
+		 /* update_graphs();*/
+	     };
+	     var get_date_range = function() {
+		 return $.getJSON("{% url 'date_range' %}");
+	     };
+	     var get_lidar_scans = function(min_time, max_time, v) {
+		 var url = "{% url 'available_scans' %}?time_min=" +
+			   min_time.toISOString() + '&time_max=' +
+			   max_time.toISOString() + '&var=' + v;
+		 return $.getJSON(url);
+	     };
+	     var update_graphs = function() {
+		 var var_str = varpicker.val();
+		 var date_str = datepicker.val();
+		 var min_time = new Date(date_str);
+		 /* add time */
+		 var min_time_str = $('.time.start').val();
+		 min_time.setUTCHours(parseInt(min_time_str.substring(0,2)));
+		 min_time.setMinutes(parseInt(min_time_str.substring(3,5)));
+		 /* and the ending time */
+		 var max_time = new Date(datepicker2.val());
+		 var max_time_str = $('.time.end').val();
+		 max_time.setUTCHours(parseInt(max_time_str.substring(0,2)));
+		 max_time.setMinutes(parseInt(max_time_str.substring(3,5)));
+		 /* var max_time = new Date(min_time.valueOf());
+		    max_time.setDate(max_time.getDate() + 1);*/
+		 var indices = lidarpicker.val();
+		 if (indices == '') {
+		     return
+		 }
+		 var scan_ids = [];
+		 $.each(indices, function(i0, index) {
+		     var i2 = parseInt(index);
+		     scan_ids.push(lidars[i2]['scan_id']);
+		 });
+		 /* update_scans(lidar_id, min_time, max_time);*/
+		 'appsvr.asrc.cestm.albany.edu:9090/plot?lidar_id=12&scan_id=14&time_min=2016-11-21 00:00&time_max=2016-11-22 00:00&var=CNR&type=heat'
+		 var url = "{% url 'plot' %}?scan_id=" +
+			   scan_ids.join() + '&time_min=' +
+			   min_time.toISOString() + '&time_max=' +
+			   max_time.toISOString() + '&var=' +
+			   var_str + '&type=heat';
+		 if (barbbox.is(":checked")) {
+		     url += '&barbs=True';
+		 };
+		 spinner.spin();
+		 graph.css('opacity', .4);
+		 $('body').append(spinner.el);
+		 graph.attr("src", url);
+	     };
+	     var disable_options = function() {
+		 var options = $(lidarpicker[0].options);
+		 var var_requires_wind = requires_wind.indexOf(varpicker.val()) != -1;
+		 var barbs_selected = barbbox.is(":checked");
+		 if (var_requires_wind || barbs_selected) {
+		     /* disable the invalid choices */
+		     options.each(function(i, option) {
+			 /* disable if mode is not DBS */
+			 var mode = lidars[i]['mode'];
+			 if (mode != 'dbs') {
+			     option.disabled = true;
+			 };
+		     });
+		 } else {
+		     /* none should be disabled */
+		     options.each(function(i, option) {
+			 /* disable if mode is not DBS */
+			 option.disabled = false;
+		     });
+		 };
+	     };
+	     var update_map = function() {
+		 marker_layer.clearLayers();
+		 var displayed_lidars = [];
+		 var selected_lidars = [];
+		 /* get all the selected sites */
+		 $.each(lidarpicker[0].options, function(i, option) {
+		     if (option.selected) {
+			 selected_lidars.push(lidars[i]['site_name']);
+		     };
+		 });
+		 $.each(lidars, function(i, lidar) {
+		     var site = lidar['site_name'];
+		     /* if the location hasn't been added to the map already */
+		     if (displayed_lidars.indexOf(site) == -1) {
+			 var lat = lidar['latitude'];
+			 var lon = lidar['longitude']
+			 var marker = L.circleMarker([lat, lon], cm_options);
+			 marker['name'] = site
+			 marker.on('click', clickMarker);
+			 if (selected_lidars.indexOf(marker['name']) != -1) {
+			     marker['selected'] = true;
+			     marker.setStyle(cm_selected_options);
+			 };
+			 marker.bindTooltip(site);
+			 marker_layer.addLayer(marker);
+			 displayed_lidars.push(site);
+		     };
+		 });
+	     };
+	     varpicker.change(function() {
+		 disable_options();
+		 /* are we looking at lidar or mwr data? */
+		 var v = varpicker.val();
+		 var var_instr = (mwr_data.indexOf(v) != -1) ? 'mwr' : 'lidar';
+		 if (var_instr == instrument) {
+		     /* not going to update the choices in this case */
+		     return $.when();
+		 } else {
+		     instrument = var_instr;
+		     update_lidar_scans();
+		 };
+		 /* update_graphs();*/
+	     });
+	     lidarpicker.change(function() {
+		 update_map();
+		 /* update_graphs();*/
+	     });
+	     barbbox.change(disable_options);
+	     var update_lidar_scans = function() {
+		 /* updating the lidar select dropdown list */
+		 var v = varpicker.val();
+		 /* can't add wind barbs to radiometer data at the moment
+		    so don't allow that */
+		 if (instrument == 'mwr') {
+		     barbbox.prop('checked', false);
+		     barbbox.prop('disabled', true);
+		 } else {
+		     barbbox.prop('disabled', false);
+		 };
+		 /* disable all the options while we update them, and add
+		    spinner to the map */
+		 var options = $(lidarpicker[0].options);
+		 options.each(function(i, option) {
+		     option.disabled = true;
+		 });
+		 spinner.spin();
+		 $('#map').append(spinner.el);
+		 /* get available scans and make new list */
+		 var min_time = new Date(datepicker.val());
+		 /* add time */
+		 var min_time_str = $('.time.start').val();
+		 min_time.setUTCHours(parseInt(min_time_str.substring(0,2)));
+		 min_time.setMinutes(parseInt(min_time_str.substring(3,5)));
+		 /* and the ending time */
+		 var max_time = new Date(datepicker2.val());
+		 var max_time_str = $('.time.end').val();
+		 max_time.setUTCHours(parseInt(max_time_str.substring(0,2)));
+		 max_time.setMinutes(parseInt(max_time_str.substring(3,5)));
+		 /* keep track of the sites-- try to keep these sites
+		    selected when updating the choices */
+		 var selected_sites = [];
+		 $.each(lidarpicker[0].options, function(i, option) {
+		     var site = lidars[i]['site_name'];
+		     if (option.selected & (selected_sites.indexOf(site) == -1)) {
+			 selected_sites.push(site);
+		     };
+		 });
+		 return get_lidar_scans(min_time, max_time, v).done(function(lidars_api) {
+		     lidars = lidars_api;
+		     var arr = [];
+		     $.each(lidars, function(i, lidar) {
+			 arr.push({val: i,
+				   text: lidar['lidar_name'] + ' (' + lidar['scan_name'] + ')'});
+		     });
+		     var sel = lidarpicker;
+		     sel.empty();
+		     $(arr).each(function(i, a) {
+			 var selected = (selected_sites.indexOf(lidars[i]['site_name']) != -1);
+			 sel.append($("<option>").attr('value', this.val).text(this.text).prop('selected', selected));
+		     });
+		     /* disable some options if needed (for wind datasets) */
+		     disable_options();
+		     update_map();
+		     spinner.stop();
+		 });
+	     };
+	     var create_date_picker = function() {
+		 return get_date_range().done(function(result) {
+		     /* set up the date picker */
+		     var min_date = new Date(result[0]);
+		     var max_date = new Date(result[1]);
+		     min_date.setMinutes(min_date.getMinutes() +
+					 min_date.getTimezoneOffset());
+		     max_date.setMinutes(max_date.getMinutes() +
+					 max_date.getTimezoneOffset());
+		     /* create_date_picker(min_date, max_date);*/
+		     date_options = {dateFormat: 'yy-mm-dd',
+				     minDate: min_date,
+				     maxDate: max_date}
+		     datepicker.datepicker(date_options);
+		     datepicker.change(function() {
+			 /* switch datepicker2 to the next day */
+			 var next_day = new Date(datepicker.val());
+			 next_day.setDate(next_day.getDate() + 1);
+			 datepicker2.val(next_day.toISOString().substring(0, 10));
+			 return update_lidar_scans();
+		     });
+		     datepicker.val(result[1]);
+		     /* create second date picker */
+		     max_date.setDate(max_date.getDate() + 1);
+		     date_options['maxDate'] = max_date;
+		     datepicker2.datepicker(date_options);
+		     datepicker2.change(function() {
+			 return update_lidar_scans();
+		     });
+		     datepicker2.val(max_date.toISOString().substring(0, 10));
+
+		     /* datepicker.change();*/
+		     $('.time').timepicker({step: 60, timeFormat: 'H:i'});
+		     $('.time').timepicker('setTime', max_date);
+		 });
+	     };
+	     /* start doing things */
+	     create_date_picker().done(function() {
+		 /* get the most recent data */
+		 update_lidar_scans().done(function() {
+		     lidarpicker.val(['0']);
+		     lidarpicker.change();
+		     update_graphs();
+		 });
+	     });
+	     var map_options = {zoomControl: false}
+	     var map = L.map('map', map_options).setView([43, -76], 5);
+	     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tlcHRpa29zIiwiYSI6ImNqNWU2NjNhYzAwcDEycWpqdTJtNWJmNGYifQ.kxK-j2hWsX46EhH5PnsTfA', {
+		 maxZoom: 18,
+		 id: 'mapbox.streets'
+	     }).addTo(map);
+	     var marker_layer = L.layerGroup().addTo(map);
+	    </script>
+	</div>
+	{% include 'footer.html' %}
+    </body>
+</html>
