@@ -17,8 +17,8 @@ import datetime as dt
 import numpy as np
 import xarray as xr
 from io import BytesIO
-# nice matplotlib tools for calculating tickmark locations -- I'm
-# using these to find nice windbarb intervals
+# matplotlib tools for calculating tickmark locations -- I'm using
+# these to find nice windbarb intervals
 from matplotlib.ticker import MaxNLocator
 from matplotlib.dates import AutoDateLocator, num2date
 # and this is needed to help monkey patch the barbs function
@@ -30,14 +30,12 @@ MICROSECONDLY = SECONDLY + 1
 # django stuff
 from common.models import Scan, Mwr, MwrProfile
 from profiles.models import Lidar5m
-from django.db.models import OuterRef, Subquery, F
-from django.db.models.expressions import RawSQL
 from django.contrib.postgres.aggregates import ArrayAgg
 
 
 # variable-specific plot settings
-barb_resample = None
-barb_bins = .1
+# barb_resample = None
+# barb_bins = .1
 barb_length = 4.5
 barb_lw = .8
 barb_heights = 30
