@@ -5,33 +5,403 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- leaflet stuff -->
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" integrity="sha512-wcw6ts8Anuw10Mzh9Ytw4pylW8+NAD4ch3lqm9lzAsTxg0GFeJgoAtxuCLREZSC5lUXdVyo/7yfsqFjQ4S+aKw==" crossorigin="">
-	<script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js" integrity="sha512-mNqn2Wg7tSToJhvHcqfzLMU6J4mkOImSPTxVZAdo+lcPlk+GhZmYgACEe0x35K7YzW1zJ7XyJV/TT1MrdXvMcA==" crossorigin=""></script>
+	<link rel="stylesheet" href="//unpkg.com/leaflet@1.1.0/dist/leaflet.css" integrity="sha512-wcw6ts8Anuw10Mzh9Ytw4pylW8+NAD4ch3lqm9lzAsTxg0GFeJgoAtxuCLREZSC5lUXdVyo/7yfsqFjQ4S+aKw==" crossorigin="">
+	<script src="//unpkg.com/leaflet@1.1.0/dist/leaflet.js" integrity="sha512-mNqn2Wg7tSToJhvHcqfzLMU6J4mkOImSPTxVZAdo+lcPlk+GhZmYgACEe0x35K7YzW1zJ7XyJV/TT1MrdXvMcA==" crossorigin=""></script>
 	<!-- jquery stuff -->
-	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
 	<!-- jquery ui stuff (for calendar dropdown) -->
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<!-- timepicker stuff -->
-	<!-- <script src="js/jquery.timepicker.min.js"></script>
-	     <link rel="stylesheet" type="text/css" href="css/jquery.timepicker.min.css"> -->
 	<script src="{% static 'profiles/js/jquery.timepicker.min.js' %}"></script>
-	<link rel="stylesheet" type="text/css" href="{% static 'profiles/css/jquery.timepicker.min.css' %}">
+	<link rel="stylesheet" href="{% static 'profiles/css/jquery.timepicker.min.css' %}">
 	<!-- spinning stuff -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+	<!-- for the bootstrap timepicker -->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+	<!-- alpaca -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+        <link rel="stylesheet" href="//code.cloudcms.com/alpaca/1.5.23/bootstrap/alpaca.min.css" rel="stylesheet" />
+        <script src="//code.cloudcms.com/alpaca/1.5.23/bootstrap/alpaca.min.js"></script>
+	<!-- Include Date Range Picker -->
+	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 	<!-- the site-wide css file -->
 	<link rel="stylesheet" href="{% static 'css/main.css' %}">
+	<!-- a handlebars template for range containters- I should make this a static resource! -->
+	<script type="text/x-handlebars-template" id="range">
+	    {% verbatim %}
+	    <div>
+		{{#if options.label}}
+		<label class="{{#if options.labelClass}}{{options.labelClass}}{{/if}} control-label alpaca-control-label" for="{{id}}">{{{options.label}}}</label>
+		{{/if}}
+
+		{{#if options.helpers}}
+		{{#each options.helpers}}
+		<p class="alpaca-helper help-block {{#if options.helperClass}}{{options.helperClass}}{{/if}}">
+		    <i class="alpaca-icon-16 glyphicon glyphicon-info-sign"></i>
+		    {{{.}}}
+		</p>
+		{{/each}}
+		{{/if}}
+
+		{{#container}}{{/container}}
+	    </div>
+	    {% endverbatim %}
+	</script>
+	<script type="text/x-handlebars-template" id="helper-on-top">
+	    {% verbatim %}
+	    <div class="form-group">
+
+		{{#if options.label}}
+		<label class="{{#if options.labelClass}}{{options.labelClass}}{{/if}} control-label alpaca-control-label" for="{{id}}">{{{options.label}}}</label>
+		{{/if}}
+
+		{{#if options.helpers}}
+		{{#each options.helpers}}
+		{{#if options.helperClass}}<a href="{% url 'datasets' %}">{{/if}}
+		<p class="help-block {{#if options.helperClass}}{{options.helperClass}}{{/if}}">
+		    <i class="glyphicon glyphicon-info-sign"></i>
+		    {{{.}}}
+		</p>
+		{{#if options.helperClass}}</a>{{/if}}
+		{{/each}}
+		{{/if}}
+
+		{{#control}}{{/control}}
+
+		{{#if options.renderButtons}}
+		{{#if options.buttons}}
+		<div class="alpaca-control-buttons-container">
+		    {{#each options.buttons}}
+		    <button data-key="{{@key}}" type="{{type}}" class="alpaca-control-button alpaca-control-button-{{@key}} {{styles}}" {{#each value}}{{@key}}="{{value}}" {{/each}}>{{{value}}}</button>
+		    {{/each}}
+		</div>
+		{{/if}}
+		{{/if}}
+
+	    </div>
+	    {% endverbatim %}
+	</script>
 	<!-- a bit of styling -->
 	<style>
 	 /* ... will I put stuff in here? Maybe. */
 	 #lidar_graph {
 	     min-height: 350px;
 	 }
+	 .alpaca-control {
+	     width: auto;
+	 }
+	 label.control-label::after {
+	     content: ':';
+	 }
+	 .help-block {
+	     display: inline;
+	     margin-left: 5px;
+	 }
+	 /* range field styling */
+	 .alpaca-field-range .alpaca-container-item,
+	 .alpaca-field-range .form-group,
+	 .alpaca-field-range input {
+	     display: inline;
+	 }
+	 .alpaca-field-range .alpaca-container-item label.control-label {
+	     font-weight: normal;
+	 }
+	 .alpaca-field-range .alpaca-container-item label.control-label::after {
+	     content: none;
+	 }
+	 /* time range styling */
+	 .alpaca-field-daterange input {
+	     min-width: 260px;
+	 }
+	 /* timepicker styling */
+	 /* @media (min-width: 768px) {
+	    .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
+	    width: 26em;
+	    }
+	    }
+	    .datepicker.col-md-6, .timepicker.col-md-6 {
+	    display: inline-block;
+	    }
+	    .datepicker.col-md-6 {
+	    width: 75%;   
+	    }
+	    .timepicker.col-md-6 {
+	    width: 25%;   
+	    } */
 	</style>
     </head>
     <body>
 	<div id="height">
 	    {% include 'header.html' %}
+	    <div id="form"></div>
+	    <script type="text/javascript">
+	     $.alpaca.Fields.DateField = $.alpaca.Fields.DateField.extend({
+		 afterRenderControl: function(model, callback) {
+		     var self = this;
+
+		     this.base(model, function() {
+
+			 if (self.view.type !== "display")
+			     {
+				 if ($.fn.datetimepicker)
+				     {
+					 self.getControlEl().datetimepicker(self.options.picker);
+
+					 self.picker = self.getControlEl().data("DateTimePicker");
+					 if (self.picker && self.options.dateFormat)
+					     {
+						 self.picker.format(self.options.dateFormat);
+					     }
+					 if (self.picker)
+					     {
+						 self.options.dateFormat = self.picker.format();
+					     }
+
+					 // with date-time picker, trigger change using plugin
+					 self.getFieldEl().on("dp.change", function(e) {
+
+					     // we use a timeout here because we want this to run AFTER control click handlers
+					     setTimeout(function() {
+						 self.onChange.call(self, e);
+						 self.triggerWithPropagation("change", e);
+					     }, 250);
+
+					 });
+
+					 // set value if provided
+					 if (self.data) {
+					     self.picker.date(self.data);
+					 }
+				     }
+			     }
+
+			 callback();
+
+		     });
+		 },
+	     });
+	     $.alpaca.registerFieldClass('date', $.alpaca.Fields.DateField);
+	     /* making a Date Range Picker field */
+	     $.alpaca.Fields.DateRangeField = $.alpaca.Fields.DatetimeField.extend({
+		 getFieldType: function() {
+		     return 'daterange';
+		 },
+		 afterRenderControl: function(model, callback) {
+		     var self = this;
+
+		     if (self.view.type !== "display")
+			 {
+			     if ($.fn.daterangepicker)
+				 {
+				     /* make sure it updates correctly if you want to show placeholder text */
+				     if (self.options.placeholder) {
+					 self.options.picker['autoUpdateInput'] = false;
+				     };
+				     self.getControlEl().daterangepicker(self.options.picker);
+
+				     self.picker = self.getControlEl().data('daterangepicker');
+				     /* if (self.picker && self.options.dateFormat)
+					{
+					self.picker.format(self.options.dateFormat);
+					}
+					if (self.picker)
+					{
+					self.options.dateFormat = self.picker.format();
+					}*/
+
+				     // with date-time picker, trigger change using plugin
+				     /* self.getFieldEl().on("apply.daterangepicker", function(e) {
+
+					// we use a timeout here because we want this to run AFTER control click handlers
+					setTimeout(function() {
+					self.onChange.call(self, e);
+					self.triggerWithPropagation("change", e);
+					}, 250);
+
+					});*/
+				     console.log(self);
+				     self.control.on("apply.daterangepicker", function(e) {
+					 console.log(e)
+					 // we use a timeout here because we want this to run AFTER control click handlers
+					 setTimeout(function() {
+					     self.onChange.call(self, e);
+					     self.triggerWithPropagation("change", e);
+					 }, 250);
+
+				     });
+
+				     // set value if provided
+				     /* if (self.data) {
+					self.picker.date(self.data);
+					}*/
+				 }
+			 }
+		     callback();
+		 },
+	     });
+	     $.alpaca.registerFieldClass('daterange', $.alpaca.Fields.DateRangeField);
+	     /* $.alpaca.registerDefaultSchemaFieldMapping('daterange', 'datetime');*/
+	     $.alpaca.registerDefaultFormatFieldMapping("date-time", "daterange");
+	     /* making a range field */
+	     $.alpaca.Fields.RangeField = $.alpaca.Fields.ObjectField.extend({
+		 getFieldType: function() {
+		     return 'range';
+		 },
+		 getTemplateDescriptorId : function ()
+		 {
+		     return 'range';
+		 }
+	     });
+	     $.alpaca.registerFieldClass('range', $.alpaca.Fields.RangeField);
+	     $.alpaca.registerDefaultSchemaFieldMapping('range', 'range');
+	     /* creating the form */
+	     var picker_common = {
+		 useCurrent: false,
+		 format: 'YYYY-MM-DD HH:mm',
+		 stepping: 5,
+		 focusOnShow: false
+	     };
+	     var from_picker = $.extend({}, picker_common, {
+		 /* viewMode: 'months'*/
+	     });
+	     var drpicker_options = {
+		 timePicker: true,
+		 timePicker24Hour: true,
+		 timePickerIncrement: 5,
+		 locale: {
+		     format: 'MM/DD/YYYY HH:mm'
+		 },
+		 /* this keeps it from writing values before anyone has chosen anything */
+		 autoUpdateInput: false
+	     };
+	     var var_options = {
+		 'cnr': 'CNR',
+		 'drws': 'DRWS',
+		 'barbs': 'Wind Direction',
+		 'hwind': 'Horizontal Wind Speed',
+		 'zwind': 'Vertical Wind Speed',
+		 'xwind': 'x Wind Speed',
+		 'ywind': 'y Wind Speed',
+		 'temp': 'Temperature',
+		 'vapor': 'Vapor Density',
+		 'liquid': 'Liquid',
+		 'rh': 'Relative Humidity'
+	     };
+             $(document).ready(function() {
+                 $("#form").alpaca({
+                     schema: {
+                         title: "Data Options",
+                         type: "object",
+                         properties: {
+			     dr: {
+				 title: 'Time range (UTC)',
+				 type: 'string'
+			     },
+			     var: {
+                                 type: "string",
+                                 title: "Data",
+				 default: 'cnr'
+                             },
+			     sources: {
+                                 type: "string",
+                                 title: "Sources"
+                             },
+                             barb: {}
+                         }
+                     },
+                     options: {
+			 focus: false,
+			 form: {
+                             attributes: {
+                                 action: 'javascript:update_graphs();'
+                             },
+                             buttons:{
+                                 submit: {
+				     title: 'View Data'
+				 }
+                             }
+                         },
+                         fields: {
+			     dr: {
+				 placeholder: 'Loading...',
+				 type: 'daterange',
+				 picker: drpicker_options
+			     },
+                             var: {
+                                 type: 'select',
+				 dataSource: var_options,
+				 helper: '&#8203;',
+				 /* helper: "<a href=\"{% url 'datasets' %}\">get data definitions</a>",*/
+                             },
+			     sources: {
+                                 type: "select",
+				 multiple: true
+                             },
+			     barb: {
+				 type: 'checkbox',
+				 rightLabel: 'Overlay wind barbs'
+                             }
+                         }
+                     },
+		     view: {
+			 parent: "bootstrap-edit",
+			 fields: {
+			     "/var": {
+				 templates: {
+				     control: '#helper-on-top'
+				 }
+			     }
+			 }
+		     },
+		     postRender: function(control) {
+			 /* get the max and min times for the datetime
+			    fields, and set them to default values */
+			 return get_date_range().done(function(result) {
+			     var min_date = new Date(result[0]);
+			     var max_date = new Date(result[1]);
+			     min_date.setMinutes(min_date.getMinutes() +
+						 min_date.getTimezoneOffset());
+			     max_date.setMinutes(max_date.getMinutes() +
+						 max_date.getTimezoneOffset());
+
+			     /* set the daterange values */
+			     var dr = control.childrenByPropertyId['dr'];
+			     var drp = dr.control.data('daterangepicker');
+			     drp.autoUpdateInput = true;
+			     drp.setStartDate(max_date);
+			     max_date.setDate(max_date.getDate() + 1);
+			     drp.setEndDate(max_date);
+
+			     dr.on('change', function() {
+				 get_lidar_scans().done(function(lidars) {
+				     var arr = [];
+				     $.each(lidars, function(i, lidar) {
+					 arr.push({val: i,
+						   text: lidar['lidar_name'] + ' (' + lidar['scan_name'] + ')'});
+				     });
+				     var sel = control.childrenByPropertyId['sources'].control;
+				     sel.empty();
+				     $(arr).each(function(i, a) {
+					 var selected = (selected_sites.indexOf(lidars[i]['site_name']) != -1);
+					 sel.append($("<option>").attr('value', this.val).text(this.text).prop('selected', selected));
+				     });
+				 });
+			     });
+
+			     /* datepicker.change();*/
+			     /* $('.time').timepicker({step: 60, timeFormat: 'H:i'});
+				$('.time').timepicker('setTime', max_date);*/
+			 });
+		     }
+		 });
+	     });
+            </script>
 	    <fieldset>
 		<legend>Data Options:</legend>
 		<form id="form1" action="javascript:update_graphs();">
@@ -78,6 +448,12 @@
 	     var datepicker2 = $('#datepicker2');
 	     var varpicker = $('#varpicker');
 	     var lidarpicker = $('#lidarpicker');
+	     /* var form1 = $('#form').alpaca('get');
+		var tr = form1.childrenByPropertyId['time_range'];*/
+	     /* var datepicker;
+		var datepicker2;
+		var varpicker;
+		var lidarpicker;*/
 	     var barbbox = $('#barbs');
 	     var graph = $('#lidar_graph');
 	     var selected_sites = [];
@@ -148,7 +524,24 @@
 	     var get_date_range = function() {
 		 return $.getJSON("{% url 'date_range' %}");
 	     };
-	     var get_lidar_scans = function(min_time, max_time, v) {
+	     /* var get_lidar_scans = function(min_time, max_time, v) {
+		var url = "{% url 'available_scans' %}?time_min=" +
+		min_time.toISOString() + '&time_max=' +
+		max_time.toISOString() + '&var=' + v;
+		return $.getJSON(url);
+		};*/
+	     var get_lidar_scans = function(v) {
+		 var form1 = $('#form').alpaca('get');
+		 /* var tr = form1.childrenByPropertyId['time_range'];
+		    var tmin = tr.childrenByPropertyId['from'].control;
+		    var tmax = tr.childrenByPropertyId['to'].control;
+		    var v = form1.childrenByPropertyId['var'];
+		    var min_time = tmin.data("DateTimePicker").date();
+		    var max_time = tmax.data("DateTimePicker").date();*/
+		 var dr = form1.childrenByPropertyId['dr'];
+		 var drp = dr.control.data('daterangepicker');
+		 var min_time = drp.startDate;
+		 var max_time = drp.endDate;
 		 var url = "{% url 'available_scans' %}?time_min=" +
 			   min_time.toISOString() + '&time_max=' +
 			   max_time.toISOString() + '&var=' + v;
@@ -357,14 +750,14 @@
 		 });
 	     };
 	     /* start doing things */
-	     create_date_picker().done(function() {
-		 /* get the most recent data */
-		 update_lidar_scans().done(function() {
-		     lidarpicker.val(['0']);
-		     lidarpicker.change();
-		     update_graphs();
-		 });
-	     });
+	     /* create_date_picker().done(function() {
+		// get the most recent data
+		update_lidar_scans().done(function() {
+		lidarpicker.val(['0']);
+		lidarpicker.change();
+		update_graphs();
+		});
+		});*/
 	     var map_options = {zoomControl: false}
 	     var map = L.map('map', map_options).setView([43, -76], 5);
 	     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tlcHRpa29zIiwiYSI6ImNqNWU2NjNhYzAwcDEycWpqdTJtNWJmNGYifQ.kxK-j2hWsX46EhH5PnsTfA', {
