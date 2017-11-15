@@ -6,7 +6,7 @@ body {
 }
 
 #height {
-    min-height: calc(100vh - 120px);
+    min-height: calc(100vh - 65px);
 }
 
 header {
@@ -39,7 +39,7 @@ h3 {
     height: 200px;
     width: 250px;
     border: 1px solid gray;
-    float: right;
+    /* float: right; */
     margin-right: 4px;
 }
 fieldset {
@@ -75,12 +75,16 @@ dt::after {
 
 /* footer stuff */
 footer {
-    margin-top: 50px;
-    padding: 10px 0px 10px 40px;
+    margin-top: 10px;
+    padding: 20px 0px 35px 40px;
     height: 50px;
     /* dark theme */
     color: white;
     background-color: #444;
+}
+
+footer p {
+    margin: 0;
 }
 
 footer a:visited {
