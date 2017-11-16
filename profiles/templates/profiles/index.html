@@ -381,6 +381,15 @@
 			 var drp = dr.control.data('daterangepicker');
 			 dr.on('change', update_lidar_scans);
 
+			 /* print an error message when the graph fails to load */
+			 graph.on('error', function(ev) {
+			     try {
+				 spinner.stop();
+			     } catch(err) {};
+			     graph.css('opacity', 1);
+			     graph.attr('alt', 'Error: failed to get the image');
+			 });
+
 			 /* get the max and min times for the datetime
 			    fields, and set them to default values */
 			 get_date_range().done(function(result) {
