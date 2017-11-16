@@ -244,6 +244,8 @@
                              },
                              barb: {
 				 title: 'Overlays'
+			     },
+			     pbl: {
 			     }
                          }
                      },
@@ -278,6 +280,10 @@
 			     barb: {
 				 type: 'checkbox',
 				 rightLabel: 'Wind barbs (DBS mode only)'
+                             },
+			     pbl: {
+				 type: 'checkbox',
+				 rightLabel: 'PBL (residual layer)'
                              }
                          }
                      },
@@ -289,7 +295,8 @@
 				 var: 'left',
 				 dr: 'right',
 				 sources: 'left',
-				 barb: 'left'
+				 barb: 'left',
+				 pbl: 'left'
 			     }
 			 },
 			 fields: {
@@ -406,7 +413,7 @@
 			     drp.maxDate = max_date;
 			     drp.setStartDate(cur_date);
 			     /* Starting the autoupdate here so it
-			     only updates once when the page loads! */
+				only updates once when the page loads! */
 			     drp.autoUpdateInput = true;
 			     drp.setEndDate(max_date);
 			 });
@@ -513,6 +520,7 @@
 		 var min_time = dr.startDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 		 var max_time = dr.endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 		 var barbs = form.childrenByPropertyId['barb'].getValue();
+		 var pbl = form.childrenByPropertyId['pbl'].getValue();
 		 /* stop if no sources selected */
 		 if (sources.length == 0) {
 		     return
@@ -530,6 +538,9 @@
 			   var_str + '&type=heat';
 		 if (barbs) {
 		     url += '&barbs=True';
+		 };
+		 if (pbl) {
+		     url += '&pbl=True';
 		 };
 		 spinner.spin();
 		 graph.css('opacity', .4);

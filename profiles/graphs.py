@@ -10,6 +10,9 @@ matplotlib.rcParams['figure.figsize'] = (15, 7)
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+# see here: https://matplotlib.org/faq/howto_faq.html#plot-numpy-datetime64-values
+from pandas.tseries import converter as pdtc
+pdtc.register()
 
 # useful stuff
 import xml, rasppy
@@ -312,11 +315,14 @@ def get_lidar_data(params):
                                     '%Y-%m-%dT%H:%M:00.000Z')
     scan_ids = np.fromstring(params['scan_id'], sep=',')
     var = params['var']
+    pbl = 'pbl' in params.keys() and params['pbl'] == 'True'
     # figure out which columns we need to get
     if var == 'hwind':
         columns = ['xwind', 'ywind']
     else:
         columns = [var]
+    if pbl:
+        columns = list(set(columns) | set(['cnr']))
 
     # get the data
     if var in Mwr.mwr_vars:
@@ -366,6 +372,20 @@ def get_barb_data(params):
         ds.coords['Component'] = ['x', 'y']
     return dss
 
+# yay pbl!
+def estimate_residual_layer(cnr):
+    cnr1 = cnr.isel(Range=slice(None, -1))
+    cnr2 = cnr.isel(Range=slice(1, None))
+    dcnr = (cnr2 - cnr1.values)
+    relevent_dcnr = dcnr.sel(Range=slice(.4, 3))
+    print(relevent_dcnr.min())
+    relevent_dcnr = relevent_dcnr.where(relevent_dcnr > -5)
+    relevent_dcnr = relevent_dcnr.where(cnr < -10)
+    time_has_values = ~(np.isnan(relevent_dcnr).all(dim='Range'))
+    pbl_ranges = relevent_dcnr.isel(Time=time_has_values).argmin(dim='Range').astype(float)
+    pbl_ranges[:] = relevent_dcnr.coords['Range'].values[pbl_ranges.astype(int)]
+    return pbl_ranges
+
 
 def get_plot(params):
     time_min = dt.datetime.strptime(params['time_min'],
@@ -373,6 +393,7 @@ def get_plot(params):
     time_max = dt.datetime.strptime(params['time_max'],
                                     '%Y-%m-%dT%H:%M:00.000Z')
     barbs = 'barbs' in params.keys() and params['barbs'] == 'True'
+    pbl = 'pbl' in params.keys() and params['pbl'] == 'True'
     var = params['var']
     lgd = None
     has_barbs = var == 'barbs' or barbs
@@ -436,6 +457,14 @@ def get_plot(params):
                 Zm = np.ma.masked_where(np.isnan(Z), Z)
                 ax.pcolormesh(ds.coords['Time'].values,
                               ds.coords['Range'].values, Zm)
+
+            if pbl:
+                # add pbl
+                ds['pbl'] = estimate_residual_layer(ds['cnr'])
+                ax.scatter(ds.coords['Time'].values, ds['pbl'], 50, marker='.', color='red',
+                           label='PBL (Residual Layer)')
+                ax.legend(loc=1)
+            
             ax.set_title(title)
             ax.set_xlim([time_min, time_max])
             ax.set_xlabel('Time (UTC)')
