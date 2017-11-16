@@ -13,6 +13,8 @@
 	<script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
 	<!-- for the bootstrap timepicker -->
 	<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
+	<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script> -->
+	<!-- <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script> -->
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
@@ -202,6 +204,7 @@
 		 timePicker: true,
 		 timePicker24Hour: true,
 		 timePickerIncrement: 5,
+		 showDropdowns: true,
 		 locale: {
 		     format: 'MM/DD/YYYY HH:mm'
 		 },
@@ -381,13 +384,20 @@
 			 /* get the max and min times for the datetime
 			    fields, and set them to default values */
 			 get_date_range().done(function(result) {
-			     var min_date = moment.utc(result[0]);
-			     var max_date = moment.utc(result[1]);
+			     /* make sure to clone to avoid
+				accidentally changing the
+				daterangeicker times in other
+				functions!! Use 'clone' to modify the
+				times! */
+
+			     var min_date = moment(result[0]);
+			     var cur_date = moment(result[1]);
+			     var max_date = cur_date.clone().add(1, 'd');
 			     drp.minDate = min_date;
-			     drp.setStartDate(max_date);
-			     /* get the start of the next day */
-			     max_date.date(max_date.date() + 1);
 			     drp.maxDate = max_date;
+			     drp.setStartDate(cur_date);
+			     /* Starting the autoupdate here so it
+			     only updates once when the page loads! */
 			     drp.autoUpdateInput = true;
 			     drp.setEndDate(max_date);
 			 });
@@ -475,11 +485,11 @@
 		 var v = form1.childrenByPropertyId['var'].getValue();
 		 var dr = form1.childrenByPropertyId['dr'];
 		 var drp = dr.control.data('daterangepicker');
-		 var min_time = drp.startDate;
-		 var max_time = drp.endDate;
+		 var min_time = drp.startDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+		 var max_time = drp.endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 		 var url = "{% url 'available_scans' %}?time_min=" +
-			   min_time.toISOString() + '&time_max=' +
-			   max_time.toISOString() + '&var=' + v;
+			   min_time + '&time_max=' +
+			   max_time + '&var=' + v;
 		 return $.getJSON(url);
 	     };
 	     var update_graphs = function() {
@@ -487,8 +497,12 @@
 		 var sources = form.childrenByPropertyId['sources'].getValue();
 		 var var_str = form.childrenByPropertyId['var'].getValue();
 		 var dr = $(form.childrenByPropertyId['dr'].control).data('daterangepicker');
-		 var min_time = dr.startDate.toISOString();
-		 var max_time = dr.endDate.toISOString();
+		 /* the start and end dates are stored in the local
+		    time zone instead of UTC. Rather than converting it,
+		    I'm just printing out the local time and pretending
+		    it's UTC */
+		 var min_time = dr.startDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+		 var max_time = dr.endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 		 var barbs = form.childrenByPropertyId['barb'].getValue();
 		 /* stop if no sources selected */
 		 if (sources.length == 0) {
@@ -499,7 +513,6 @@
 		     var i2 = parseInt(index);
 		     scan_ids.push(lidars[i2]['scan_id']);
 		 });
-		 /* update_scans(lidar_id, min_time, max_time);*/
 		 'appsvr.asrc.cestm.albany.edu:9090/plot?lidar_id=12&scan_id=14&time_min=2016-11-21 00:00&time_max=2016-11-22 00:00&var=CNR&type=heat'
 		 var url = "{% url 'plot' %}?scan_id=" +
 			   scan_ids.join() + '&time_min=' +
