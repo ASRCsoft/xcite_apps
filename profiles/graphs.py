@@ -354,7 +354,8 @@ def get_barb_data(params):
     #                .annotate(**fields_dict)
     profiles = Scan.objects \
                    .filter(id__in=scan_ids,
-                           lidar5m__time__in=times) \
+                           lidar5m__time__in=times,
+                           lidar5m__xwind__isnull=False) \
                    .extra({'name': "(xpath('//lidar_scan/@name', xml)::varchar[])[1]"}) \
                    .values('id', 'lidar__name', 'name', 'xml') \
                    .annotate(**fields_dict)
@@ -371,6 +372,7 @@ def get_barb_data(params):
     ds_list = [None] * len(scan_ids)
     for i, scan_id in enumerate(pg_scan_ids):
         ds_list[scan_ids.index(scan_id)] = dss[i]
+    print(ds_list)
     return ds_list
 
 
