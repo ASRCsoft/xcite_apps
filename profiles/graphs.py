@@ -336,7 +336,7 @@ def get_barb_data(params):
                                     '%Y-%m-%dT%H:%M:00.000Z')
     time_max = dt.datetime.strptime(params['time_max'],
                                     '%Y-%m-%dT%H:%M:00.000Z')
-    scan_ids = np.fromstring(params['scan_id'], sep=',')
+    scan_ids = np.fromstring(params['scan_id'], sep=',').tolist()
 
     # get nice time intervals
     times = [ num2date(n) for n in xloc.tick_values(time_min, time_max) ]
@@ -364,7 +364,14 @@ def get_barb_data(params):
     for ds in dss:
         ds['windspeed'] = xr.concat([ds['xwind'], ds['ywind']], dim='Component')
         ds.coords['Component'] = ['x', 'y']
-    return dss
+
+    # have to reorganize these into the right order and replace
+    # missing datasets with None
+    pg_scan_ids = [ p['id'] for p in profiles ]
+    ds_list = [None] * len(scan_ids)
+    for i, scan_id in enumerate(pg_scan_ids):
+        ds_list[scan_ids.index(scan_id)] = dss[i]
+    return ds_list
 
 
 def get_plot(params):
@@ -440,7 +447,7 @@ def get_plot(params):
             ax.set_xlim([time_min, time_max])
             ax.set_xlabel('Time (UTC)')
             ax.set_ylabel('Range (km)')
-            if barbs:
+            if barbs and ds_barbs[i] is not None:
                 ds = ds_barbs[i]
                 ds['windspeed'].rasp.plot_barbs(x='Time', y='Range',
                                                 components=['x', 'y'],

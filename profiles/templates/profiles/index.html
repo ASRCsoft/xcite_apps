@@ -234,13 +234,13 @@
 				 type: 'string'
 			     },
 			     var: {
-                                 type: "string",
-                                 title: "Data",
+                                 type: 'string',
+                                 title: 'Data',
 				 default: 'cnr'
                              },
 			     sources: {
-                                 type: "string",
-                                 title: "Sources"
+                                 type: 'string',
+                                 title: 'Sources'
                              },
                              barb: {
 				 title: 'Overlays'
@@ -268,7 +268,8 @@
                              var: {
                                  type: 'select',
 				 dataSource: var_options,
-				 /* helper: '&#8203;',*/
+				 removeDefaultNone: true,
+				 sort: false,
 				 helper: "<a href=\"{% url 'datasets' %}\" target=\"_blank\">see data definitions</a>"
                              },
 			     sources: {
@@ -291,13 +292,6 @@
 				 sources: 'left',
 				 barb: 'left'
 			     }
-			 },
-			 fields: {
-			     /* "/var": {
-				templates: {
-				control: '#helper-on-top'
-				}
-				}*/
 			 }
 		     },
 		     postRender: function(control) {
@@ -406,7 +400,7 @@
 			     drp.maxDate = max_date;
 			     drp.setStartDate(cur_date);
 			     /* Starting the autoupdate here so it
-			     only updates once when the page loads! */
+				only updates once when the page loads! */
 			     drp.autoUpdateInput = true;
 			     drp.setEndDate(max_date);
 			 });
