@@ -21,7 +21,7 @@
 	    <p>(All data is aggregated into 5 minute intervals.)</p>
 	    <dl>
 		<dt>CNR</dt>
-		<dd>Carrier to Noise Ratio. An average of CNR data where Status is 1. (A Status value of 1 indicates with high probability that the lidar recorded the laser signal rather than background noise.) To further reduce noise, I also counted every range/time combination with 3 or fewer Status==1 measurements as missing data.</dd>
+		<dd>Carrier to Noise Ratio. An average of CNR data where Status is 1. (A Status value of 1 indicates with high probability that the lidar recorded the laser signal rather than background noise.) To further reduce noise, I also counted every range/time combination with less than 3 Status==1 measurements as missing data.</dd>
 		<dt>DRWS</dt>
 		<dd>Dispersion Radial Wind Speed. Calculated with the same method as CNR.</dd>
 		<dt>Horizontal Wind Speed, Vertical Wind Speed, x Wind Speed, y Wind Speed</dt>
