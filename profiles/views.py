@@ -8,7 +8,7 @@ from django.template import loader
 import json, datetime
 
 # get some stuff from the common app
-from common.models import Lidar, Scan, Mwr
+from common.models import Lidar, Scan, Mwr, MwrScan
 from profiles.models import Lidar5m
 from profiles.graphs import get_plot
 
@@ -42,15 +42,14 @@ def available_scans(request):
     time_max = datetime.datetime.strptime(time_max_str, '%Y-%m-%dT%H:%M:00.000Z')
     var = request.GET['var']
     if var in Mwr.mwr_vars:
-        scans = Mwr.objects \
+        scans = MwrScan.objects \
                    .filter(mwrprofile__time__range=(time_min, time_max)) \
                    .distinct() \
-                   .extra(select={'scan_name': "'Microwave Radiometer'",
-                                  'mode': "'NA'"}) \
-                   .values('scan_name', 'mode', scan_id=F('id'), lidar_name=F('name'),
-                           latitude=F('site__latitude'), longitude=F('site__longitude'),
-                           site_name=F('site__name')) \
-                   .order_by('name')
+                   .extra(select={'mode': "'NA'"}) \
+                   .values('mode', scan_name=F('processor'), scan_id=F('id'), lidar_name=F('mwr__name'),
+                           latitude=F('mwr__site__latitude'), longitude=F('mwr__site__longitude'),
+                           site_name=F('mwr__site__name')) \
+                   .order_by('lidar_name', 'scan_name')
     else:
         # put together the query
         scans = Scan.objects \

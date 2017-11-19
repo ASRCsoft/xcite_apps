@@ -31,7 +31,8 @@ from dateutil.rrule import (rrule, MO, TU, WE, TH, FR, SA, SU, YEARLY,
 MICROSECONDLY = SECONDLY + 1
 
 # django stuff
-from common.models import Scan, Mwr, MwrProfile
+from django.db.models import F
+from common.models import Scan, Mwr, MwrScan, MwrProfile
 from profiles.models import Lidar5m
 from django.contrib.postgres.aggregates import ArrayAgg
 
@@ -258,7 +259,7 @@ def xrlist_from_mwrprofiles(profiles, columns, time_min, time_max, minutes=5):
         for column in columns:
             data_vars[column] = (['Time', 'Range'], profile[column])
         attrs = {'lidar': profile['name'],
-                 'scan': 'Microwave Radiometer'}
+                 'scan': profile['processor']}
         ds = xr.Dataset(data_vars=data_vars, coords=coords,
                         attrs=attrs)
 
@@ -299,11 +300,10 @@ def xrlist_from_mwr(mwr_ids, columns, time_min, time_max):
         fields_dict[column] = ArrayAgg('mwrprofile__' + column)
 
     # get the data -- yes all the data at once -- yes really
-    profiles = Mwr.objects \
+    profiles = MwrScan.objects \
                   .filter(id__in=mwr_ids,
-                          mwrprofile__time__range=(time_min, time_max),
-                          mwrprofile__processor='Zenith') \
-                  .values('id', 'name') \
+                          mwrprofile__time__range=(time_min, time_max)) \
+                  .values('id', 'processor', name=F('mwr__name')) \
                   .annotate(**fields_dict)
     return xrlist_from_mwrprofiles(profiles, columns, time_min, time_max)
 
@@ -383,16 +383,39 @@ def get_barb_data(params):
 
 # yay pbl!
 def estimate_residual_layer(cnr):
-    cnr1 = cnr.isel(Range=slice(None, -1))
-    cnr2 = cnr.isel(Range=slice(1, None))
+    relevant_cnr = cnr.sel(Range=slice(None, 3))
+    cnr1 = relevant_cnr.isel(Range=slice(None, -1))
+    cnr2 = relevant_cnr.isel(Range=slice(1, None))
     dcnr = (cnr2 - cnr1.values)
-    relevent_dcnr = dcnr.sel(Range=slice(.4, 3))
-    print(relevent_dcnr.min())
-    relevent_dcnr = relevent_dcnr.where(relevent_dcnr > -5)
-    relevent_dcnr = relevent_dcnr.where(cnr < -10)
-    time_has_values = ~(np.isnan(relevent_dcnr).all(dim='Range'))
-    pbl_ranges = relevent_dcnr.isel(Time=time_has_values).argmin(dim='Range').astype(float)
+    # relevent_dcnr = relevent_dcnr.where(relevent_dcnr > -5)
+    # relevent_dcnr = relevent_dcnr.where(cnr < -10)
+    time_has_values = ~(np.isnan(dcnr).all(dim='Range'))
+    relevent_dcnr = dcnr.isel(Time=time_has_values)
+    pbl_ranges = relevent_dcnr.argmin(dim='Range').astype(float)
     pbl_ranges[:] = relevent_dcnr.coords['Range'].values[pbl_ranges.astype(int)]
+    # # also get highest cloud bottoms
+    # is_cloud = (relevent_dcnr > 5)
+    # time_has_cloud = is_cloud.any(dim='Range')
+    # cloud_bottom_indices = np.flip(is_cloud.isel(Time=time_has_cloud).values, 1).argmax(axis=1)
+    # cloud_bottom_ranges = np.flip(relevent_dcnr.coords['Range'].values, 0)[cloud_bottom_indices]
+    # pbl_ranges[time_has_cloud] = cloud_bottom_ranges
+    
+    # also get highest cloud bottoms -- from cnr
+    relevant_cnr = relevant_cnr.isel(Time=time_has_values)
+    is_cloud = (relevant_cnr > -5)
+    time_has_cloud = is_cloud.any(dim='Range')
+    relevant_clouds = is_cloud.isel(Time=time_has_cloud)
+    # get the cloud bottoms (cloud bottom has layer below that isn't a
+    # cloud)
+    cloud1 = relevant_clouds.isel(Range=slice(None, -1))
+    cloud2 = relevant_clouds.isel(Range=slice(1, None))
+    is_cloud_bottom = (cloud2 & ~cloud1.values)
+    time_has_cloud_bottom = is_cloud_bottom.any(dim='Range')
+    highest_cloud_bottom_indices = np.flip(is_cloud_bottom, 1).argmax(axis=1)
+    highest_cloud_bottom_ranges = np.flip(cloud2.coords['Range'].values, 0)[highest_cloud_bottom_indices]
+    highest_cloud_bottom_ranges[~time_has_cloud_bottom] = np.nan
+    pbl_ranges[time_has_cloud] = highest_cloud_bottom_ranges
+    # pbl_ranges[time_has_cloud] = np.nan
     return pbl_ranges
 
 
@@ -471,7 +494,7 @@ def get_plot(params):
                 # add pbl
                 ds['pbl'] = estimate_residual_layer(ds['cnr'])
                 ax.scatter(ds.coords['Time'].values, ds['pbl'], 50, marker='.', color='red',
-                           label='PBL (Residual Layer)')
+                           edgecolor='gray', lw=.5, label='PBL (Residual Layer)')
                 ax.legend(loc=1)
             
             ax.set_title(title)

@@ -103,6 +103,16 @@ class Mwr(models.Model):
     #             6.0, 6.25, 6.5, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25,
     #             8.5, 8.75, 9.0, 9.25, 9.5, 9.75, 10.0]
 
+    
+class MwrScan(models.Model):
+    mwr = models.ForeignKey(Mwr, models.DO_NOTHING)
+    id = models.SmallIntegerField(primary_key=True)
+    processor = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'mwr_scans'
+
 
 # need a router to make sure these go to the right place
 class CommonRouter(object):
@@ -197,9 +207,10 @@ class CommonRouter(object):
 
 
 class MwrProfile(models.Model):
-    mwr = models.ForeignKey('Mwr', models.DO_NOTHING, primary_key=True)
+    scan = models.ForeignKey('MwrScan', models.DO_NOTHING, primary_key=True)
     time = models.DateTimeField(primary_key=True)
-    processor = models.CharField(max_length=255, primary_key=True)
+    mwr = models.ForeignKey('Mwr')
+    processor = models.CharField(max_length=255)
     # for the composite primary key
     objects = composite.CompositePKManager()
     
@@ -215,5 +226,5 @@ class MwrProfile(models.Model):
     class Meta:
         managed = False
         db_table = 'mwr_profiles'
-        unique_together = (('mwr', 'time', 'processor'),)
+        unique_together = (('scan', 'time'),)
         get_latest_by = 'time'
