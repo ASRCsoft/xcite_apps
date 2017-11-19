@@ -299,12 +299,17 @@ def xrlist_from_mwr(mwr_ids, columns, time_min, time_max):
     for column in columns + ['time']:
         fields_dict[column] = ArrayAgg('mwrprofile__' + column)
 
+    filters_dict = {'id__in': mwr_ids,
+                    'mwrprofile__time__range': (time_min, time_max)}
+    for column in columns:
+        column_name = 'mwrprofile__' + column + 'q'
+        filters_dict[column_name] = True
+
     # get the data -- yes all the data at once -- yes really
     profiles = MwrScan.objects \
-                  .filter(id__in=mwr_ids,
-                          mwrprofile__time__range=(time_min, time_max)) \
-                  .values('id', 'processor', name=F('mwr__name')) \
-                  .annotate(**fields_dict)
+                      .filter(**filters_dict) \
+                      .values('id', 'processor', name=F('mwr__name')) \
+                      .annotate(**fields_dict)
     return xrlist_from_mwrprofiles(profiles, columns, time_min, time_max)
 
 
