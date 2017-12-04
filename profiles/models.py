@@ -11,6 +11,7 @@ class Lidar5m(composite.CompositePKModel):
     objects = composite.CompositePKManager()
     
     cnr = ArrayField(models.FloatField(blank=True, null=True))
+    cnr_whole = ArrayField(models.FloatField(blank=True, null=True))
     drws = ArrayField(models.FloatField(blank=True, null=True))
     xwind = ArrayField(models.FloatField(blank=True, null=True))
     ywind = ArrayField(models.FloatField(blank=True, null=True))

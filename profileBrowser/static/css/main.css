@@ -35,13 +35,13 @@ h3 {
 #form1 {
     margin-bottom: 0px;
 }
-#map {
-    height: 200px;
-    width: 250px;
-    border: 1px solid gray;
-    /* float: right; */
-    margin-right: 4px;
-}
+/* #map { */
+/*     height: 200px; */
+/*     width: 250px; */
+/*     border: 1px solid gray; */
+/*     /\* float: right; *\/ */
+/*     margin-right: 4px; */
+/* } */
 fieldset {
     padding: 10px 15px 15px;
     width: fit-content;

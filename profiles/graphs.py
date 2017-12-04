@@ -327,7 +327,8 @@ def get_lidar_data(params):
     else:
         columns = [var]
     if pbl:
-        columns = list(set(columns) | set(['cnr']))
+        # columns = list(set(columns) | set(['cnr']))
+        columns = list(set(columns) | set(['cnr_whole']))
 
     # get the data
     if var in Mwr.mwr_vars:
@@ -356,13 +357,6 @@ def get_barb_data(params):
     for column in ['xwind', 'ywind', 'time']:
         fields_dict[column] = ArrayAgg('lidar5m__' + column)
         
-    # profiles = Scan.objects \
-    #                .filter(id__in=scan_ids,
-    #                        lidar5m__time__range=(time_min, time_max)) \
-    #                .extra({'name': "(xpath('//lidar_scan/@name', xml)::varchar[])[1]"},
-    #                       where=["(date_part('minute', time)::int %% 20)=0"]) \
-    #                .values('id', 'lidar__name', 'name', 'xml') \
-    #                .annotate(**fields_dict)
     profiles = Scan.objects \
                    .filter(id__in=scan_ids,
                            lidar5m__time__in=times,
@@ -383,7 +377,6 @@ def get_barb_data(params):
     ds_list = [None] * len(scan_ids)
     for i, scan_id in enumerate(pg_scan_ids):
         ds_list[scan_ids.index(scan_id)] = dss[i]
-    print(ds_list)
     return ds_list
 
 # yay pbl!
@@ -409,18 +402,19 @@ def estimate_residual_layer(cnr):
     relevant_cnr = relevant_cnr.isel(Time=time_has_values)
     is_cloud = (relevant_cnr > -5)
     time_has_cloud = is_cloud.any(dim='Range')
-    relevant_clouds = is_cloud.isel(Time=time_has_cloud)
-    # get the cloud bottoms (cloud bottom has layer below that isn't a
-    # cloud)
-    cloud1 = relevant_clouds.isel(Range=slice(None, -1))
-    cloud2 = relevant_clouds.isel(Range=slice(1, None))
-    is_cloud_bottom = (cloud2 & ~cloud1.values)
-    time_has_cloud_bottom = is_cloud_bottom.any(dim='Range')
-    highest_cloud_bottom_indices = np.flip(is_cloud_bottom, 1).argmax(axis=1)
-    highest_cloud_bottom_ranges = np.flip(cloud2.coords['Range'].values, 0)[highest_cloud_bottom_indices]
-    highest_cloud_bottom_ranges[~time_has_cloud_bottom] = np.nan
-    pbl_ranges[time_has_cloud] = highest_cloud_bottom_ranges
-    # pbl_ranges[time_has_cloud] = np.nan
+    if time_has_cloud.any():
+        relevant_clouds = is_cloud.isel(Time=time_has_cloud)
+        # get the cloud bottoms (cloud bottom has layer below that isn't a
+        # cloud)
+        cloud1 = relevant_clouds.isel(Range=slice(None, -1))
+        cloud2 = relevant_clouds.isel(Range=slice(1, None))
+        is_cloud_bottom = (cloud2 & ~cloud1.values)
+        time_has_cloud_bottom = is_cloud_bottom.any(dim='Range')
+        highest_cloud_bottom_indices = np.flip(is_cloud_bottom, 1).argmax(axis=1).values
+        highest_cloud_bottom_ranges = np.flip(cloud2.coords['Range'].values, 0)[highest_cloud_bottom_indices]
+        highest_cloud_bottom_ranges[~time_has_cloud_bottom] = np.nan
+        pbl_ranges[time_has_cloud] = highest_cloud_bottom_ranges
+        # pbl_ranges[time_has_cloud] = np.nan
     return pbl_ranges
 
 
@@ -497,7 +491,7 @@ def get_plot(params):
 
             if pbl:
                 # add pbl
-                ds['pbl'] = estimate_residual_layer(ds['cnr'])
+                ds['pbl'] = estimate_residual_layer(ds['cnr_whole'])
                 ax.scatter(ds.coords['Time'].values, ds['pbl'], 50, marker='.', color='red',
                            edgecolor='gray', lw=.5, label='PBL (Residual Layer)')
                 ax.legend(loc=1)

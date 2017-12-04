@@ -30,6 +30,8 @@
 		<dd>Average horizontal wind speeds (same as the wind speeds above). To cut down the overwhelming number of wind barbs the graphs may only show the values at certain time intervals and heights may be averaged into larger bins. For example, a graph with one day of data will only display wind barbs at 20-minute intervals, ignoring the values at other 5-minute periods.</dd>
 		<dt>Temperature, Vapor Density, Liquid, Relative Humidity</dt>
 		<dd>Averages of the corresponding microwave radiometer datasets where quality is 1.</dd>
+		<dt>PBL (Residual Layer)</dt>
+		<dd>Estimated using the gradient method. When there are no clouds, select the steepest downward CNR gradient (derivative with respect to range). When there are clouds, select the bottom of the highest cloud.</dd>
 	    </dl>
 	</div>
 	{% include 'footer.html' %}
