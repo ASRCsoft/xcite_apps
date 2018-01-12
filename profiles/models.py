@@ -16,6 +16,7 @@ class Lidar5m(composite.CompositePKModel):
     xwind = ArrayField(models.FloatField(blank=True, null=True))
     ywind = ArrayField(models.FloatField(blank=True, null=True))
     zwind = ArrayField(models.FloatField(blank=True, null=True))
+    zwind_var = ArrayField(models.FloatField(blank=True, null=True))
 
     class Meta:
         managed = False

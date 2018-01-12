@@ -3,19 +3,19 @@
     <legend>{{options.label}}</legend>
     {{/if}}
 
+    {{#if options.helpers}}
+    {{#each options.helpers}}
+    <p class="alpaca-helper help-block {{#if options.helperClass}}{{options.helperClass}}{{/if}}">
+        <i class="alpaca-icon-16 glyphicon glyphicon-info-sign"></i>
+        {{{.}}}
+    </p>
+    {{/each}}
+    {{/if}}
+
     <div class="container-fluid">
-	<div class="alpaca-wide" id="top"></div>
 	<div class="row">
             <div class="col-md-6" id="left"></div>
             <div class="col-md-6" id="right"></div>
 	</div>
-
-	{{#if options.helper}}
-	<div class="row">
-            <div class="col-md-12">
-		<h4>{{options.helper}}</h4>
-            </div>
-	</div>
-	{{/if}}
     </div>
 </div>

@@ -18,6 +18,9 @@ $.alpaca.Fields.DateRangeField = $.alpaca.Fields.DatetimeField.extend({
 		};
 		self.getControlEl().daterangepicker(self.options.picker);
 
+		// alright the autoupdate is ok again:
+		self.getControlEl().data('daterangepicker').autoUpdateInput = true;
+
 		self.picker = self.getControlEl().data('daterangepicker');
 		/* if (self.picker && self.options.dateFormat)
 		   {
@@ -59,12 +62,21 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
     clickMarker: function(e) {
 	var marker = e.target;
 	var marker_val = marker['value'];
-	var shift = event.shiftKey || event.ctrlKey;
-	var marker_is_selected = this.getValue().indexOf(marker_val) != -1;
+	var event = e.originalEvent;
+	var shift = event.shiftKey || event.ctrlKey || event.metaKey;
+	var selected_sites = this.getValue();
+	if (selected_sites) {
+	    var marker_is_selected = selected_sites.indexOf(marker_val) != -1;
+	} else {
+	    var marker_is_selected = false;
+	};
 	if (shift && marker_is_selected) {
 	    this.deselectMarker(marker);
 	} else {
 	    this.selectMarker(marker, shift);
+	};
+	if (this.options.multiple && $.fn.multiselect && !this.isDisplayOnly()) {
+	    $(this.getControlEl()).multiselect('refresh');
 	};
 	this.control.change();
     },
@@ -93,17 +105,27 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
 	});
 	this.setValue(new_vals);
     },
+    getControlEl: function()
+    {
+        return this.control.slice(0, 1);
+    },
     selectAfterRenderControl: $.alpaca.Fields.SelectField.prototype.afterRenderControl,
     afterRenderControl: function(model, callback)
     {
 	var self = this;
 
 	if (this.options.hideSelect) {
-	    $(this.control[0]).hide();
-	}
-
-	this.selectAfterRenderControl(model, callback);
-
+	    if (this.options.multiple && $.fn.multiselect && !this.isDisplayOnly()) {
+		this.selectAfterRenderControl(model, callback);
+		$(this.field).find('button').hide();
+	    } else {
+		$(this.control[0]).hide();
+		this.selectAfterRenderControl(model, callback);
+	    };
+	} else {
+	    this.selectAfterRenderControl(model, callback);
+	};
+	
 	/* initialize the map when added to the display */
 	this.on('ready', function() {
 	    /* organize the markers */
@@ -111,18 +133,22 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
 	    var locations = this.options.locations;
 	    var selected_sites = this.getValue();
 	    var markerFun = this.options.markerFunction || L.circleMarker;
-	    $.each(this.getEnum(), function(i, site) {
-		var marker = markerFun(locations[site], this.options.marker);
-		marker['value'] = site;
-		marker.on('click', this.clickMarker.bind(this));
-		if (selected_sites.indexOf(marker['value']) != -1) {
-		    marker.setStyle(this.options.selectedMarker);
-		};
-		marker.bindTooltip(this.options.optionLabels[i]);
-		this.markers.addLayer(marker);
-	    }.bind(this));
+	    if (locations) {
+		// (this loop will break if locations haven't been provided)
+		$.each(this.getEnum(), function(i, site) {
+		    if (locations[site]) {
+			var marker = markerFun(locations[site], this.options.marker);
+			marker['value'] = site;
+			marker.on('click', this.clickMarker.bind(this));
+			if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
+			    marker.setStyle(this.options.selectedMarker);
+			};
+			marker.bindTooltip(this.options.optionLabels[i]);
+			this.markers.addLayer(marker);
+		    };
+		}.bind(this));
+	    };
 
-	    
 	    var map_div = this.containerItemEl[0].getElementsByClassName('alpaca-form-leaflet-select-map')[0];
 	    var map_options = this.options.map_options;
 	    /* remove existing map if needed */
@@ -143,8 +169,9 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
     },
     onChange: function(e) {
 	// ignore events coming from the map
-	if (e.target.tagName == 'SELECT') {
-	    var selected_sites = this.getValue();
+	var target_tag = e.target.tagName;
+	if (target_tag == 'SELECT' || target_tag == 'BUTTON') {
+	    var selected_sites = this.getValue() || [];
     	    $.each(this.markers.getLayers(), function(i, marker) {
     		/* set the appropriate styles */
     		if (selected_sites.indexOf(marker['value']) == -1) {
@@ -154,6 +181,9 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
     		};
     	    }.bind(this));
 	};
+	if (this.options.multiple && $.fn.multiselect && !this.isDisplayOnly()) {
+	    $(this.getControlEl()).multiselect('refresh');
+	};
     },
     selectSetValue: $.alpaca.Fields.SelectField.prototype.setValue,
     setValue: function(val) {
@@ -162,10 +192,10 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
 	var selected_sites = this.getValue();
 	$.each(this.markers.getLayers(), function(i, marker) {
 	    /* set the appropriate styles */
-	    if (selected_sites.indexOf(marker['value']) == -1) {
-		marker.setStyle(this.options.marker);
-	    } else {
+	    if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
 		marker.setStyle(this.options.selectedMarker);
+	    } else {
+		marker.setStyle(this.options.marker);
 	    };
 	}.bind(this));
     }
