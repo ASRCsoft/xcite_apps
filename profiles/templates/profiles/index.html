@@ -38,7 +38,8 @@
 <header>
     <h2>Profiles</h2>
 </header>
-<div id="form" data-datasets="{% url 'datasets' %}" data-template="{% static 'profiles/html/form.html' %}"
-     data-daterange="{% url 'date_range' %}" data-scans="{% url 'available_scans' %}" data-plot="{% url 'plot' %}"></div>
+<div id="form" data-datasets="{% url 'profiles:datasets' %}" data-template="{% static 'profiles/html/form.html' %}"
+     data-daterange="{% url 'profiles:date_range' %}" data-scans="{% url 'profiles:available_scans' %}"
+     data-plot="{% url 'profiles:plot' %}"></div>
 <img id="lidar_graph" src="" alt="Results">
 {% endblock %}

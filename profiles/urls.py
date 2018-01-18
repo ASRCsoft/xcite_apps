@@ -2,6 +2,7 @@ from django.conf.urls import url
 
 from . import views
 
+app_name = 'profiles'
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^date_range$', views.date_range, name='date_range'),
