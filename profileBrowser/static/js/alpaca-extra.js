@@ -188,16 +188,18 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
     selectSetValue: $.alpaca.Fields.SelectField.prototype.setValue,
     setValue: function(val) {
 	this.selectSetValue(val);
-	// update the map
-	var selected_sites = this.getValue();
-	$.each(this.markers.getLayers(), function(i, marker) {
-	    /* set the appropriate styles */
-	    if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
-		marker.setStyle(this.options.selectedMarker);
-	    } else {
-		marker.setStyle(this.options.marker);
-	    };
-	}.bind(this));
+	// update the map (if it exists)
+	if (this.markers) {
+	    var selected_sites = this.getValue();
+	    $.each(this.markers.getLayers(), function(i, marker) {
+		/* set the appropriate styles */
+		if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
+		    marker.setStyle(this.options.selectedMarker);
+		} else {
+		    marker.setStyle(this.options.marker);
+		};
+	    }.bind(this));
+	};
     }
 });
 $.alpaca.registerFieldClass('leaflet-select', $.alpaca.Fields.LeafletSelect);
