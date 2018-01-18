@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}HYSPLIT{% endblock %}
+
+{% block head_content %}
+{% include 'leaflet.html' %}
+{% include 'alpaca.html' %}
+<!-- topojson stuff -->
+<script src="https://unpkg.com/topojson@3"></script>
+<!-- jquery ui stuff -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<!-- adding touch support for jquery ui -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js" integrity="sha256-AAhU14J4Gv8bFupUUcHaPQfvrdNauRHMt+S4UVcaJb0=" crossorigin="anonymous"></script>
+<!-- <script src="js/jquery.ui.touch-punch.min.js"></script> -->
+<!-- nice html labeled range slider -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-ui-Slider-Pips/1.11.4/jquery-ui-slider-pips.min.js" integrity="sha256-OL8tV6ONTtyNVwcLNx0HfV0RVvreW1rvBCu/Nv2zIxo=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jQuery-ui-Slider-Pips/1.11.4/jquery-ui-slider-pips.min.css" integrity="sha256-sKlemxcbJhCtL3BoS3JA7MIORA4bizjl1VpSgpBI4r8=" crossorigin="anonymous" />
+<!-- <script src="js/jquery-ui-slider-pips.js"></script>
+     <link rel="stylesheet" href="css/jquery-ui-slider-pips.css"> -->
+<!-- extra stuff for timeslider -->
+<script src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/leaflet.timedimension.control.css' %}">
+<script src="{% static 'js/timedimension.js' %}"></script>
+<!-- a spinning wheel! -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+<!-- <script src="js/leaflet.spin.min.js"></script> -->
+<!-- leaflet-layerArray -->
+<link rel="stylesheet" href="{% static 'css/layerArray.css' %}">
+<script src="{% static 'js/layerArray.js' %}"></script>
+<!-- bootstrap datetimepicker -->
+<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js" integrity="sha256-5YmaxAwMjIpMrVlK84Y/+NjCpKnFYa8bWWBbUHSBGfU=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" integrity="sha256-yMjaV542P+q1RnH6XByCPDfUFhmOafWbeLPmqKh11zo=" crossorigin="anonymous" />
+<!-- the site-wide css file -->
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<!-- stuff for this page -->
+<!-- <script type="text/javascript" src="{% static 'profiles/js/main.js' %}"></script> -->
+<!-- hysplit app files -->
+<script src="{% static 'js/topojson.js' %}"></script>
+<script src="{% static 'js/hysplit.js' %}"></script>
+<script src="{% static 'hysplit/js/main.js' %}"></script>
+<link rel="stylesheet" href="{% static 'hysplit/css/hysplit.css' %}">
+<style>
+ body {
+     padding-bottom: 0;
+ }
+ .navbar {
+     margin-bottom: 0;
+     border-bottom: 1px solid #ccc;
+ }
+ nav.navbar {
+     z-index: 4000;
+ }
+ #map {
+     height: calc(100vh - 151px);
+ }
+ .leaflet-top.leaflet-right {
+     z-index: 1500;
+ }
+ footer {
+     position: relative;
+     margin-top: 0;
+ }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="map"></div>
+<script type="text/javascript">
+
+ /* useful global variables */
+ /* contour levels */
+ var levels = [-2, -1, 0, 1, 2, 3];
+ h1 = new Hysplit('VOOR', true);
+ h1.initialize('map');
+</script>
+{% endblock %}

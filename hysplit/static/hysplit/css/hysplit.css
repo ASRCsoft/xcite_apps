@@ -1,0 +1,172 @@
+/* hysplit app css */
+
+/*
+some of this is taken from the example at
+http://leafletjs.com/examples/choropleth/
+*/
+body {margin: 0}
+#map {
+    width: 100%;
+    height: 100%;
+    /* min-height: 650px; */
+}
+#locator {
+    width: 345px;
+    max-width: 100%;
+    height: 345px;
+    z-index: 0;
+    border: none;
+    border-radius: 2px;
+    padding: 0px;
+}
+.leaflet-top, .leaflet-right {
+    max-width: 90%;
+}
+.leaflet-top div.info, .leaflet-right div.info {
+    max-width: 100%;
+}
+.leaflet-top.leaflet-right .leaflet-control {
+    clear: none;
+}
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    margin: 10px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+.legend {
+    text-align: left;
+    line-height: 18px;
+    color: #555;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+
+/* fix superscript line heights- taken from
+https://css-tricks.com/snippets/css/prevent-superscripts-and-subscripts-from-affecting-line-height/ */
+sup, sub {
+    vertical-align: baseline;
+    position: relative;
+    top: -0.4em;
+}
+sub { 
+    top: 0.4em; 
+}
+
+/* make the leaflet-timedimension player look a little nicer */
+.leaflet-bar-timecontrol .leaflet-control-timecontrol {
+    border: none;
+}
+
+/* keep the locator map from showing scrollbars */
+#locator {
+    overflow: hidden;
+}
+
+/* for the metricsgraphics trajectory graph */
+.hysplit_trajectory_tooltip {
+    width: 500px;
+    height: 200px;
+}
+
+/* fix the time dimension player reverse play button height inconsistency issue */
+.timecontrol-play.reverse:before {
+    transform: scaleX(-1);
+    margin-top: 0;
+}
+
+/*  */
+.leaflet-bar-timecontrol a.timecontrol-date.utc,
+.leaflet-bar-timecontrol a.timecontrol-date.utc:hover {
+    min-width: unset;
+}
+@media only screen and (max-width: 500px) {
+    .leaflet-touch .leaflet-bar-timecontrol .timecontrol-speed {
+	visibility: hidden;
+	height: 0;
+	width: 0;
+	float: inherit;
+    }
+    .leaflet-touch .leaflet-bar-timecontrol .timecontrol-slider .slider {
+	width: 150px;
+    }
+}
+
+/* fix z-index issue for accordion */
+.leaflet-top.leaflet-right {
+    z-index: 9999;
+}
+/* alpaca issues */
+#simChooser {
+    width: 425px;
+    max-width: 100%;
+    max-height: 90%;
+}
+.ui-accordion .ui-accordion-content#simchooser {
+    overflow: visible;
+}
+.info .bootstrap-datetimepicker-widget.dropdown-menu {
+    max-width: unset;
+}
+label.alpaca-control-label {
+    font-weight: normal;
+}
+label.alpaca-control-label::after {
+    content: ":";
+}
+.form-control {
+    display: inline-block;
+    width: auto;
+}
+.datepicker.col-md-6, .timepicker.col-md-6 {
+    display: inline-block;
+    /* width: auto; */
+}
+#simchooser .alpaca-form-leaflet-select-map {
+    width: 360px;
+    max-width: 120%;
+    height: 300px;
+}
+#simchooser .alpaca-field-object {
+    padding: 0;
+}
+#simchooser input.alpaca-control {
+    max-width: 60px;
+}
+#simchooser .alpaca-field-datetime input.alpaca-control {
+    max-width: 150px;
+}
+#hysplit_info {
+    max-width: 425px;
+}
+
+/* overriding some bootstrap CSS that conflicts with leaflet */
+.info h4 {
+    font-size: inherit;
+    font-weight: bold;
+    line-height: initial;
+}
+.leaflet-control-layers-overlays label {
+    font-weight: inherit;
+    margin-bottom: inherit;
+}
+
+/* overriding my bootstrap CSS fix */
+h4.ui-accordion-header {
+    font-weight: inherit;
+}
+
+/* override jquery ui css */
+a.normala { color: #0078A8; }
