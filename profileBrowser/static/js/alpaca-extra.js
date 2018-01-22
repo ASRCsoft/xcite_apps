@@ -84,7 +84,7 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
 	/* when the marker is selected the style should
 	   change and the corresponding list item should be
 	   selected, then a change event is called */
-	var selected_vals = this.getValue();
+	var selected_vals = this.getValue() || [];
 	var marker_val = marker['value'];
 	marker.setStyle(this.options.selectedMarker);
 	if (shift && selected_vals.indexOf(marker_val) == -1) {
