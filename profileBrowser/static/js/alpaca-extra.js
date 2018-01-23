@@ -109,9 +109,51 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
     {
         return this.control.slice(0, 1);
     },
+    makeMap: function() {
+	/* organize the markers */
+	this.markers = L.featureGroup();
+	var locations = this.options.locations;
+	var selected_sites = this.getValue();
+	var markerFun = this.options.markerFunction || L.circleMarker;
+	if (locations) {
+	    // (this loop will break if locations haven't been provided)
+	    $.each(this.getEnum(), function(i, site) {
+		if (locations[site]) {
+		    var marker = markerFun(locations[site], this.options.marker);
+		    marker['value'] = site;
+		    marker.on('click', this.clickMarker.bind(this));
+		    if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
+			marker.setStyle(this.options.selectedMarker);
+		    };
+		    marker.bindTooltip(this.options.optionLabels[i]);
+		    this.markers.addLayer(marker);
+		};
+	    }.bind(this));
+	};
+
+	var map_div = this.containerItemEl[0].getElementsByClassName('alpaca-form-leaflet-select-map')[0];
+	var map_options = this.options.map_options;
+	/* remove existing map if needed */
+	if (this.map) {
+	    this.map.remove();
+	    this.map = null;
+	}
+	console.log('beforemap');
+	this.map = L.map(map_div, map_options).fitBounds(this.markers.getBounds().pad(.05));
+	console.log('aftermap');
+	if (this.options.tile) {
+	    
+	};
+	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tlcHRpa29zIiwiYSI6ImNqNWU2NjNhYzAwcDEycWpqdTJtNWJmNGYifQ.kxK-j2hWsX46EhH5PnsTfA', {
+	    maxZoom: 18,
+	    id: 'mapbox.streets'
+	}).addTo(this.map);
+	this.markers.addTo(this.map);
+    },
     selectAfterRenderControl: $.alpaca.Fields.SelectField.prototype.afterRenderControl,
     afterRenderControl: function(model, callback)
     {
+	console.log('afterrender');
 	var self = this;
 
 	if (this.options.hideSelect) {
@@ -127,45 +169,14 @@ $.alpaca.Fields.LeafletSelect = $.alpaca.Fields.SelectField.extend({
 	};
 	
 	/* initialize the map when added to the display */
-	this.on('ready', function() {
-	    /* organize the markers */
-	    this.markers = L.featureGroup();
-	    var locations = this.options.locations;
-	    var selected_sites = this.getValue();
-	    var markerFun = this.options.markerFunction || L.circleMarker;
-	    if (locations) {
-		// (this loop will break if locations haven't been provided)
-		$.each(this.getEnum(), function(i, site) {
-		    if (locations[site]) {
-			var marker = markerFun(locations[site], this.options.marker);
-			marker['value'] = site;
-			marker.on('click', this.clickMarker.bind(this));
-			if (selected_sites && selected_sites.indexOf(marker['value']) != -1) {
-			    marker.setStyle(this.options.selectedMarker);
-			};
-			marker.bindTooltip(this.options.optionLabels[i]);
-			this.markers.addLayer(marker);
-		    };
-		}.bind(this));
-	    };
-
-	    var map_div = this.containerItemEl[0].getElementsByClassName('alpaca-form-leaflet-select-map')[0];
-	    var map_options = this.options.map_options;
-	    /* remove existing map if needed */
-	    if (this.map) {
-		this.map.remove();
-		this.map = null;
-	    }
-	    this.map = L.map(map_div, map_options).fitBounds(this.markers.getBounds().pad(.05));
-	    if (this.options.tile) {
-		
-	    };
-	    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic2tlcHRpa29zIiwiYSI6ImNqNWU2NjNhYzAwcDEycWpqdTJtNWJmNGYifQ.kxK-j2hWsX46EhH5PnsTfA', {
-		maxZoom: 18,
-		id: 'mapbox.streets'
-	    }).addTo(this.map);
-	    this.markers.addTo(this.map);
-	}.bind(this));
+	if (!this._constructing) {
+	    this.makeMap();
+	} else {
+	    this.on('ready', function() {
+		console.log('ready');
+		this.makeMap();
+	    }.bind(this));
+	};
     },
     onChange: function(e) {
 	// ignore events coming from the map

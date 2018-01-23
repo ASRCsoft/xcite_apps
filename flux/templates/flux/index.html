@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Flux{% endblock %}
+
+{% block head_content %}
+{% include 'leaflet.html' %}
+{% include 'alpaca.html' %}
+{% include 'daterangepicker.html' %}
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<!-- bootstrap for new dropdown -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css">
+
+<!-- Plotly.js -->
+<script src="https://d14fo0winaifog.cloudfront.net/plotly-basic.js"></script>
+
+<!-- the site-wide css file -->
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<!-- stuff for this page -->
+<script type="text/javascript" src="{% static 'flux/js/main.js' %}"></script>
+
+
+<style>
+  .navbar{
+  font:
+  }
+  body{
+  background-color: #374954;
+  }
+  header, form {
+  font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+  padding: ;
+  
+  }
+  h2 {
+  color: white;
+  }
+  h3 {
+  color: white;
+  }
+  h4 {
+  color: white;
+  }
+
+  } */
+
+  a {
+  color: #fff;
+  }
+
+  button {
+  background-color: #6BBE92;
+  width: 302px;
+  border: 0;
+  padding: 10px 0;
+  margin: 5px 0;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+
+  }
+
+  html.waiting
+  {
+  cursor:wait;
+  }
+
+  #newDateRange {
+  width: 220px;
+  }
+
+  /* make the map work right */
+  .alpaca-field-leaflet-select select {
+  margin-bottom: 5px;
+  }
+  .alpaca-form-leaflet-select-map {
+  height: 400px;
+  width: 500px;
+  border: 1px solid gray;
+  /* float: right; */
+  margin-right: 4px;
+  /* margin-top: 5px; */
+  }
+  .control-label.alpaca-control-label{
+  color: red;
+  font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+  }
+
+  .alpaca-field-select .btn-group {
+  display: inline-block;
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+<h2>Flux data</h2>
+</header>
+
+<!-- div for alpaca stuff -->
+<div id="form"  data-plot="{% url 'flux:plot' %}">
+
+</div>
+{% verbatim %}
+
+<script type="text/x-handlebars-template" id="moveBut">
+
+  <form role="form">
+
+    {{#formItems}}{{/formItems}}
+
+
+
+  </form>
+
+</script>
+
+<script type="text/x-handlebars-template" id="moveBut2">
+
+  <div>
+    {{#if options.label}}
+    <legend>{{options.label}}</legend>
+    {{/if}}
+
+    {{#if options.helpers}}
+    {{#each options.helpers}}
+    <p class="alpaca-helper help-block {{#if options.helperClass}}{{options.helperClass}}{{/if}}">
+      <i class="alpaca-icon-16 glyphicon glyphicon-info-sign"></i>
+      {{{.}}}
+    </p>
+    {{/each}}
+    {{/if}}
+
+    <div class="container-fluid">
+      <div class="row">
+	<div class="col-md-6" id="left"></div>
+	<div class="col-md-6" id="right">
+	  <div class="alpaca-form-buttons-container">
+	    {{#if options.buttons}}
+	    {{#each options.buttons}}
+	    <button data-key="{{@key}}" type="{{type}}" {{#if id}}id="{{id}}"{{/if}} class="alpaca-form-button alpaca-form-button-{{@key}} {{styles}}" {{#each value}}{{@key}}="{{this}}"{{/each}} {{#each attributes}} {{@key}}="{{this}}"{{/each}}>{{{value}}}</button>
+	    {{/each}}
+	    {{/if}}
+	  </div>
+
+	</div>
+
+      </div>
+    </div>
+  </div>
+
+
+</script>
+
+{% endverbatim %}
+
+<!-- <fieldset>
+          
+          <form id="date" action="javascript:sendDate()">
+	         
+</fieldset> -->
+
+<!-- div where each heat map gets put into -->
+<div id="parent" ></div>
+
+<!-- <script type="text/javascript">
+          
+     </script> -->
+
+<div id="errorDiv"></div>
+
+<div id="container" style="height: 300px; min-width: 310px; max-width: 1000px; margi\
+     n: 0 auto"></div>
+
+<!-- Source: http://vikjavev.no/ver/highcharts-demos/heatmap.csv.php?year=2013
+          Date,Time,Temperature
+  -->
+<pre id="csv" style="display: none">
+
+
+</pre>
+
+<div id="divId"></div>
+
+
+
+
+<!-- <div id="form" data-datasets="{% url 'profiles:datasets' %}" data-template="{% static 'profiles/html/form.html' %}" -->
+<!--      data-daterange="{% url 'profiles:date_range' %}" data-scans="{% url 'profiles:available_scans' %}" -->
+<!--      data-plot="{% url 'profiles:plot' %}"></div> -->
+<!-- <img id="lidar_graph" src="" alt="Results"> -->
+{% endblock %}
