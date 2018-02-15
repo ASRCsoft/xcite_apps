@@ -16,6 +16,16 @@
  #carousel-example-generic .carousel-control {
      background-image: none;
  }
+ .row {
+     margin-right: -15px;
+     margin-left: -15px;
+ }
+ .col-md-4 h2 {
+     text-align: center;
+ }
+ .col-md-4 p {
+     font-size: 1.8rem;
+ }
 </style>
 {% endblock %}
 
@@ -78,4 +88,41 @@
 	<span class="sr-only">Next</span>
     </a>
 </div>
+
+<!-- text grid -->
+<div class="container">
+    <div class="row">
+	<div class="col-md-4">
+	    <h2>Research</h2>
+	    <p>Gleaning insight into data with multidisciplinary research, software engineering, and data science</p>
+	    <!-- <p>Where multidisciplinary researchers and software engineers can work together to better promote, and glean insight into their data through innovative software development, data science/analytics, machine learning and advanced scientific visualization</p> -->
+	</div>
+	<div class="col-md-4">
+	    <h2>Community</h2>
+	    <p>Promoting teamwork and open communities for research and software development, concepts highly encouraged by the National Science Foundation</p>
+	</div>
+	<div class="col-md-4">
+	    <h2>Design</h2>
+	    <p>Designing and prototyping new products for research, industry partners, and private sector entities</p>
+	    <!-- <p>For research, industry partners, and private sector entities to design and prototype new product ventures and technology transfer opportunities</p> -->
+	</div>
+    </div>
+    <div class="row">
+	<div class="col-md-4">
+	    <h2>Creativity</h2>
+	    <p>Fostering creative interactions between faculty, staff, and students</p>
+	    <!-- <p>Providing an environment of commonality amongst faculty, staff, and students where the creative attitude can be fostered and developed</p> -->
+	</div>
+	<div class="col-md-4">
+	    <h2>Education</h2>
+	    <p>Facilitating education and outreach opportunities for students, government, private sector, and the scientific research community</p>
+	</div>
+	<div class="col-md-4">
+	    <h2>Development</h2>
+	    <p>Promoting agile, efficient research and software development processes</p>
+	    <!-- <p>Agile research and software development processes will thrive</p> -->
+	</div>
+    </div>
+</div>
+
 {% endblock %}
