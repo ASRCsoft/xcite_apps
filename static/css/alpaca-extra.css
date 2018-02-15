@@ -1,0 +1,19 @@
+
+/* time range styling */
+.alpaca-field-daterange input {
+    min-width: 260px;
+}
+.daterangepicker .calendar {
+    max-width: 320px;
+}
+
+/* give the map some reasonable defaults */
+.alpaca-field-leaflet-select select,
+.alpaca-field-leaflet-select button {
+    margin-bottom: 5px;
+}
+.alpaca-form-leaflet-select-map {
+    height: 200px;
+    width: 250px;
+    border: 1px solid gray;
+}

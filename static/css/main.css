@@ -1,0 +1,49 @@
+/* site-wide CSS (should only be header and footer styles now,
+basically) */
+
+body {
+    padding: 0;
+    margin: 0;
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 180px;
+}
+
+/* this keeps the leaflet map from covering the jquery
+	    calendar dropdown */
+/* .leaflet-pane { */
+/*     z-index: 1; */
+/* } */
+/* .leaflet-control { */
+/*     z-index: 1; */
+/* } */
+/* .leaflet-top, .leaflet-bottom { */
+/*     z-index: 1; */
+/* } */
+
+/* data dictionary */
+dt {
+    font-weight: bold;
+    margin-top: 15px;
+}
+dt::after { 
+    content: ':';
+}
+
+/* footer stuff */
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin-top: 10px;
+    padding: 30px 40px 20px;
+    /* dark theme */
+    color: white;
+    background-color: #444;
+}
+footer p {
+    margin: 0 0 5px;
+}
+footer a:visited {
+    color: mediumpurple;
+}
